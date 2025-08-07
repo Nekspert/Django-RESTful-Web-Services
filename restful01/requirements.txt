@@ -4,6 +4,7 @@ charset-normalizer==3.4.2
 colorama==0.4.6
 defusedxml==0.7.1
 Django==5.2.4
+django-filter==25.1
 djangorestframework==3.16.0
 environs==14.2.0
 httpie==3.2.4
