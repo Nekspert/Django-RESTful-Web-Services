@@ -1,8 +1,10 @@
 from django_filters import AllValuesFilter, DateTimeFilter, FilterSet, NumberFilter
-from rest_framework import generics
+from rest_framework import generics, permissions
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
+from . import custompermission
 from .models import Competition, Drone, DroneCategory, Pilot
 from .serializers import DroneCategorySerializer, DroneSerializer, PilotCompetitionSerializer, PilotSerializer
 
@@ -36,11 +38,20 @@ class DroneList(generics.ListCreateAPIView):
     ordering_fields = ('name',
                        'manufacturing_date')
 
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+                          custompermission.IsCurrentUserOwnerOrReadOnly)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
 
 class DroneDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Drone.objects.all()
     serializer_class = DroneSerializer
     name = 'drone-detail'
+
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+                          custompermission.IsCurrentUserOwnerOrReadOnly)
 
 
 class PilotList(generics.ListCreateAPIView):
@@ -55,11 +66,17 @@ class PilotList(generics.ListCreateAPIView):
     ordering_fields = ('name',
                        'races_count')
 
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
 
 class PilotDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Pilot.objects.all()
     serializer_class = PilotSerializer
     name = 'pilot-detail'
+
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
 
 
 class CompetitionFilter(FilterSet):
